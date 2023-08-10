@@ -1,3 +1,69 @@
+let tokenId;
+
+$(document).ready(function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    tokenId = urlParams.get('id');
+    
+    if (!tokenId) {
+        tokenId = uuidv4();
+        const newUrl = `${window.location.origin}${window.location.pathname}?id=${tokenId}`;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+    }
+    
+    loadCollection();
+
+    // Assuming you have a way to detect changes (e.g., an image being moved), call saveCollection() whenever a change occurs.
+    // You'll need to hook into any event listeners or callbacks you have for image changes.
+});
+
+function saveCollection() {
+    const imagesData = $("img").map(function() {
+        const img = $(this);
+        return {
+            src: img.attr("src"),
+            position: {
+                top: img.css('margin-top'),
+                left: img.css('margin-left')
+            }
+        };
+    }).get();
+
+    let postURL = 'http://localhost:3000/saveCollection';
+
+    $.post(postURL, { images: imagesData, tokenId: tokenId }, function(data) {
+        if (data && data.id) {
+            tokenId = data.id;
+            const newUrl = `${window.location.origin}${window.location.pathname}?id=${data.id}`;
+            if (!window.location.search) {
+                window.history.pushState({ path: newUrl }, '', newUrl);
+            }
+        }
+    });
+}
+
+
+function loadCollection() {
+    $.get(`http://localhost:3000/loadCollection?id=${tokenId}`, function(data) {
+        if (data && data.images) {
+            $("img").remove();  // Clear any existing images
+            data.images.forEach(imageData => {
+                const img = document.createElement("img");
+                img.src = imageData.src;
+                document.body.appendChild(img);
+    
+                $(img).css({
+                    'margin-top': imageData.position.top,
+                    'margin-left': imageData.position.left
+                });
+                $(img).attr("draggable", "false");
+                $(img).mousedown(startDragging);
+            });
+        }
+    }).fail(function(error) {
+        console.error("Failed to load collection:", error.responseText);
+    });
+}
+
 // this variable will hold whichever object is currently being dragged
 var currentlyDragging;
 
@@ -114,6 +180,8 @@ function doneDragging(e)
 {
     // unset the image that's being dragged
     currentlyDragging = null;
+    saveCollection();
+
 }
 
 
@@ -187,3 +255,10 @@ Function.prototype.bindToEventHandler = function bindToEventHandler() {
       handler.apply(this, boundParameters);
   }
 };
+
+// ... [The rest of your script remains unchanged]
+
+
+
+
+

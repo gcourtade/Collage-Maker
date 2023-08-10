@@ -1,0 +1,25 @@
+{
+  "name": "collage-maker",
+  "version": "1.0.0",
+  "description": "make a collage of images on a website",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gcourtade/Collage-Maker.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gcourtade/Collage-Maker/issues"
+  },
+  "homepage": "https://github.com/gcourtade/Collage-Maker#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.4.2",
+    "socket.io": "^4.7.2",
+    "uuid": "^9.0.0"
+  }
+}
