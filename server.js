@@ -13,13 +13,14 @@ mongoose.connect(process.env.MONGODB_URI, {
     proxyPassword: fixieData[1],
     proxyHost: fixieData[2],
     proxyPort: fixieData[3]
-   },
-  (error) => {
-    if(error){
-      console.log(error)
-    }
-    console.log('Connected to database')}
-)
+   })
+   .then(() => {
+    console.log('Connected to MongoDB');
+  })
+  .catch(error => {
+    console.error('Error connecting to MongoDB:', error);
+  });
+
 
 const db = mongoose.connection;
 
