@@ -1,7 +1,39 @@
+require('dotenv').config();
+
+const mongoose = require('mongoose');
 const express = require('express');
 const bodyParser = require('body-parser');
 const uuidv4 = require('uuid').v4;
 const app = express();
+
+console.log("Connecting to:", process.env.MONGODB_URI);
+mongoose.connect(process.env.MONGODB_URI, { 
+    useNewUrlParser: true, 
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000,  // Timeout for server selection: 5 seconds
+    socketTimeoutMS: 45000  // Close sockets after 45 seconds of inactivity
+});
+
+const db = mongoose.connection;
+
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function() {
+  console.log("Successfully connected to MongoDB!");
+});
+
+const collectionSchema = new mongoose.Schema({
+    id: String,
+    images: [{
+        src: String,
+        position: {
+            top: String,
+            left: String
+        }
+    }]
+});
+
+const Collection = mongoose.model('Collection', collectionSchema);
+
 
 let collections = [];
 
@@ -10,37 +42,29 @@ app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 
 
-app.post('/saveCollection', (req, res) => {
-    // console.log("Received request to save collection with tokenId:", req.body.tokenId);
+app.post('/saveCollection', async (req, res) => {
     const tokenId = req.body.tokenId;
     const images = req.body.images;
 
-    if (tokenId) {
-        // Find the collection using the tokenId
-        let collection = collections.find(c => c.id === tokenId);
-        
-        // If it exists, update it
-        if (collection) {
-            collection.images = images;
-        } else {
-            // If it doesn't exist, create a new one
-            collections.push({
-                id: tokenId,
-                images: images
-            });
-        }
-        res.json({ id: tokenId });
+    let collection = await Collection.findOne({ id: tokenId });
+    
+    if (collection) {
+        collection.images = images;
+        await collection.save();
     } else {
-        // If tokenId is not provided, handle it appropriately, maybe send an error response
-        res.status(400).send("tokenId is missing");
+        collection = new Collection({
+            id: tokenId,
+            images: images
+        });
+        await collection.save();
     }
+    res.json({ id: tokenId });
 });
 
 
-
-app.get('/loadCollection', (req, res) => {
-    let tokenId = req.query.id;
-    let collection = collections.find(c => c.id === tokenId);
+app.get('/loadCollection', async (req, res) => {
+    const tokenId = req.query.id;
+    const collection = await Collection.findOne({ id: tokenId });
 
     if (collection) {
         res.json(collection);
@@ -49,7 +73,16 @@ app.get('/loadCollection', (req, res) => {
     }
 });
 
+
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+process.on('SIGINT', function() {
+    mongoose.connection.close(function() {
+        console.log('MongoDB connection closed due to app termination');
+        process.exit(0);
+    });
+});
+
