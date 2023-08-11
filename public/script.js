@@ -1,4 +1,10 @@
 let tokenId;
+let baseURL = window.location.origin;
+
+// Check if you're on localhost for development purposes
+if (window.location.hostname === 'localhost') {
+    baseURL = 'http://localhost:3000';
+}
 
 $(document).ready(function() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -28,12 +34,12 @@ function saveCollection() {
         };
     }).get();
 
-    let postURL = 'http://localhost:3000/saveCollection';
+    let postURL = `${baseURL}/saveCollection`;
 
     $.post(postURL, { images: imagesData, tokenId: tokenId }, function(data) {
         if (data && data.id) {
             tokenId = data.id;
-            const newUrl = `${window.location.origin}${window.location.pathname}?id=${data.id}`;
+            const newUrl = `${baseURL}${window.location.pathname}?id=${data.id}`;
             if (!window.location.search) {
                 window.history.pushState({ path: newUrl }, '', newUrl);
             }
@@ -43,7 +49,7 @@ function saveCollection() {
 
 
 function loadCollection() {
-    $.get(`http://localhost:3000/loadCollection?id=${tokenId}`, function(data) {
+    $.get(`${baseURL}/loadCollection?id=${tokenId}`, function(data) {
         if (data && data.images) {
             $("img").remove();  // Clear any existing images
             data.images.forEach(imageData => {
