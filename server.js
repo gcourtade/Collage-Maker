@@ -1,18 +1,25 @@
 require('dotenv').config();
 
 const mongoose = require('mongoose');
+const fixieData = process.env.FIXIE_SOCKS_HOST.split(new RegExp('[/(:\\/@/]+'));
 const express = require('express');
 const bodyParser = require('body-parser');
 const uuidv4 = require('uuid').v4;
 const app = express();
 
 console.log("Connecting to:", process.env.MONGODB_URI);
-mongoose.connect(process.env.MONGODB_URI, { 
-    useNewUrlParser: true, 
-    useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 5000,  // Timeout for server selection: 5 seconds
-    socketTimeoutMS: 45000  // Close sockets after 45 seconds of inactivity
-});
+mongoose.connect(process.env.MONGODB_URI, {
+    proxyUsername: fixieData[0],
+    proxyPassword: fixieData[1],
+    proxyHost: fixieData[2],
+    proxyPort: fixieData[3]
+   },
+  (error) => {
+    if(error){
+      console.log(error)
+    }
+    console.log('Connected to database')}
+)
 
 const db = mongoose.connection;
 
