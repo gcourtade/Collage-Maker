@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const mongoose = require('mongoose');
-const fixieData = process.env.FIXIE_SOCKS_HOST.split(new RegExp('[/(:\\/@/]+'));
+const fixieData = process.env.FIXIE_SOCKS_SOCKS_HOST.split(new RegExp('[/(:\\/@/]+'));
 const express = require('express');
 const bodyParser = require('body-parser');
 const uuidv4 = require('uuid').v4;
